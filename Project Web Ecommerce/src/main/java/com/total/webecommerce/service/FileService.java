@@ -1,9 +1,8 @@
 package com.total.webecommerce.service;
 
-import com.total.webecommerce.entity.Blog;
-import com.total.webecommerce.entity.Image;
-import com.total.webecommerce.entity.ImageBlog;
-import com.total.webecommerce.entity.User;
+import com.total.webecommerce.entity.*;
+import com.total.webecommerce.entity.support.NotificationStatus;
+import com.total.webecommerce.respository.OfAdmin.NotificationRepository;
 import com.total.webecommerce.respository.OrBlog.ImageBlogRepository;
 import com.total.webecommerce.exception.BadResquestException;
 import com.total.webecommerce.exception.NotFoundException;
@@ -29,11 +28,13 @@ public class FileService {
     private final iCurrentImpl iCurrentUser;
     @Autowired
     private ImageRepository imageRepository;
+    @Autowired
+    private NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final BlogRepository blogRepository;
     private final ImageBlogRepository imageBlogRepository;
 
-    public FileResponse uploadFile(Integer userId,MultipartFile file) {
+    public FileResponse uploadFile(Integer userId, MultipartFile file) {
         validateFile(file);
         try {
             Optional<User> user = userRepository.findById(userId);
@@ -43,51 +44,60 @@ public class FileService {
                     .user(user.get())
                     .build();
             imageRepository.save(image);
-           user.get().setAvatar("http://localhost:8888/api/v1/files/getImage/"+user.get().getId()+"/"+image.getId());
-           userRepository.save(user.get());
-            return new FileResponse("http://localhost:8888/api/v1/files/getImage/"+user.get().getId()+"/"+image.getId());
+            user.get().setAvatar("http://localhost:8888/api/v1/files/getImage/" + user.get().getId() + "/" + image.getId());
+            userRepository.save(user.get());
+            return new FileResponse("http://localhost:8888/api/v1/files/getImage/" + user.get().getId() + "/" + image.getId());
         } catch (IOException e) {
             throw new RuntimeException("Có lỗi xảy ra trong quá trình upload ảnh ");
         }
     }
-    public Image readImageUser(Integer userId,Integer imageId){
-        if(userRepository.findById(userId).isEmpty()){
+
+    public Image readImageUser(Integer userId, Integer imageId) {
+        if (userRepository.findById(userId).isEmpty()) {
             throw new BadResquestException("Không tìm thấy hình ảnh User");
         }
-        return imageRepository.findByUser_IdAndId(userId,imageId);
+        return imageRepository.findByUser_IdAndId(userId, imageId);
     }
-// image for Blog
-    public FileResponse uploadImageBook(MultipartFile file,Integer blogId) {
+
+    // image for Blog
+    public FileResponse uploadImageBook(MultipartFile file, Integer blogId) {
         Optional<Blog> blog = blogRepository.findById(blogId);
 
-        if(blog.isEmpty()){
+        if (blog.isEmpty()) {
             throw new NotFoundException("Không tìm thầy Blog này ");
         }
-
         validateFile(file);
-
         try {
-               ImageBlog imageBlog = ImageBlog.builder()
-                       .type(file.getContentType())
-                       .data(file.getBytes())
-                       .user(iCurrentUser.getUser())
-                       .blog(blog.get())
-                       .build();
-
+            ImageBlog imageBlog = ImageBlog.builder()
+                    .type(file.getContentType())
+                    .data(file.getBytes())
+                    .user(iCurrentUser.getUser())
+                    .blog(blog.get())
+                    .build();
             imageBlogRepository.save(imageBlog);
-                 blog.get().setThumbail("http://localhost:8888/api/v1/files/blog/"+blog.get().getId()+"/"+imageBlog.getId());
-                 blogRepository.save(blog.get());
-            return new FileResponse("http://localhost:8888/api/v1/files/blog/"+blog.get().getId()+"/"+imageBlog.getId());
+            blog.get().setThumbail("http://localhost:8888/api/v1/files/blog/" + blog.get().getId() + "/" + imageBlog.getId());
+            blogRepository.save(blog.get());
+            User accOfAdmin = iCurrentUser.getUser();
+            Notification notification = Notification.builder()
+                    .username(accOfAdmin.getName())
+                    .title("Update Image for Blog ")
+                    .avatar(accOfAdmin.getAvatar())
+                    .content(accOfAdmin.getName()+" Post Image for Blog with ID " +blog.get().getId())
+                    .notificationStatus(NotificationStatus.UPDATE)
+                    .typeOf(1)
+                    .build();
+            notificationRepository.save(notification);
+            return new FileResponse("http://localhost:8888/api/v1/files/blog/" + blog.get().getId() + "/" + imageBlog.getId());
         } catch (IOException e) {
             throw new RuntimeException("Có lỗi xảy ra trong quá trình upload ảnh ");
         }
     }
 
-    public ImageBlog readImageBlog(Integer blogId,Integer imageBlogId){
-        if(blogRepository.findById(blogId).isEmpty()){
+    public ImageBlog readImageBlog(Integer blogId, Integer imageBlogId) {
+        if (blogRepository.findById(blogId).isEmpty()) {
             throw new BadResquestException("Không tìm thấy hình ảnh Blog này ");
         }
-        return imageBlogRepository.findByIdAndBlog_Id(imageBlogId,blogId);
+        return imageBlogRepository.findByIdAndBlog_Id(imageBlogId, blogId);
     }
 
     private void validateFile(MultipartFile file) {
