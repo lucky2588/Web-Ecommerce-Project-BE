@@ -2,13 +2,16 @@ package com.total.webecommerce.service;
 
 import com.total.webecommerce.entity.*;
 import com.total.webecommerce.entity.dto.BestBuyer;
+import com.total.webecommerce.entity.projection.NotificationInfo;
 import com.total.webecommerce.entity.projection.OfUser.ManagentUser;
 import com.total.webecommerce.entity.projection.OfUser.PaymentInfo;
 import com.total.webecommerce.entity.projection.OfUser.UserInfo;
+import com.total.webecommerce.entity.support.NotificationStatus;
 import com.total.webecommerce.entity.support.PaymentStatus;
 import com.total.webecommerce.exception.BadResquestException;
 import com.total.webecommerce.exception.NotFoundException;
 import com.total.webecommerce.response.OverviewInfo;
+import com.total.webecommerce.respository.OfAdmin.NotificationRepository;
 import com.total.webecommerce.respository.OfAdmin.BrandRepository;
 import com.total.webecommerce.respository.OfAdmin.CategoryRepository;
 import com.total.webecommerce.respository.OfAdmin.RoleRepository;
@@ -22,6 +25,7 @@ import com.total.webecommerce.respository.OrOrder.OrderItemRepository;
 import com.total.webecommerce.respository.OrOrder.PaymentRepository;
 import com.total.webecommerce.resquest.OfOther.UpdateBrandRequest;
 import com.total.webecommerce.resquest.OfOther.UpdateCategoryRequest;
+import com.total.webecommerce.security.iCurrent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,6 +42,8 @@ import java.util.Optional;
 public class AdminService {
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private NotificationRepository notificationRepository;
     @Autowired
     private OrderItemRepository orderItemRepository;
     @Autowired
@@ -58,6 +64,8 @@ public class AdminService {
     private CategoryRepository categoryRepository;
     @Autowired
     private PaymentRepository paymentRepository;
+    @Autowired
+    private iCurrent iCurrent;
 
     // Info Garrenal
     public OverviewInfo getInfoGarenal() {
@@ -103,7 +111,7 @@ public class AdminService {
     }
 
     public ResponseEntity<?> uptoBlogerr(Integer userId) {
-        log.info("Vào Đây zzz ");
+        User accOfAdmin = iCurrent.getUser();
         Role role = roleRepository.findByName("AUTHOR").orElseThrow(
                 () -> {
                     throw new NotFoundException("Not Found Role ");
@@ -116,6 +124,15 @@ public class AdminService {
         );
         user.getRoles().add(role);
         userRepository.save(user);
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Up to Blogger")
+                .content(accOfAdmin.getName() + " up to Blogger for User " + user.getName())
+                .avatar(accOfAdmin.getAvatar())
+                .notificationStatus(NotificationStatus.ACCOUNT)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         return ResponseEntity.ok("Up to Blogger for User secess !!");
     }
 
@@ -135,35 +152,62 @@ public class AdminService {
                     () -> {
                         throw new NotFoundException("Not Found Role ");
                     }
+
             );
+            User accOfAdmin = iCurrent.getUser();
+            Notification notification = Notification.builder()
+                    .username(accOfAdmin.getName())
+                    .title("Remove Blogger")
+                    .avatar(accOfAdmin.getAvatar())
+                    .content(accOfAdmin.getName() + " remove Blogger of User " + user.getName())
+                    .notificationStatus(NotificationStatus.ACCOUNT)
+                    .typeOf(1)
+                    .build();
+            notificationRepository.save(notification);
             user.getRoles().add(roleOfUser);
             user.getRoles().remove(role);
             userRepository.save(user);
-
-
-
             return ResponseEntity.ok("Remove Blogger Seccess !! ");
         }
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Remove Blogger")
+                .content(accOfAdmin.getName() + " remove Blogger of User " + user.getName())
+                .notificationStatus(NotificationStatus.ACCOUNT)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         user.getRoles().remove(role);
         userRepository.save(user);
         return ResponseEntity.ok("Remove Blogger Seccess !! ");
     }
 
-    public ResponseEntity<?> disableUser(Integer userId){
+    public ResponseEntity<?> disableUser(Integer userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> {
                     throw new NotFoundException("Not Found User with ID : " + userId);
                 }
         );
-       if(!paymentRepository.findByUser_IdAndPaymentStatus(userId,PaymentStatus.PROCEED).isEmpty()){
-           throw new BadResquestException("This User have Order Bill !! ");
-       }
+        if (!paymentRepository.findByUser_IdAndPaymentStatus(userId, PaymentStatus.PROCEED).isEmpty()) {
+            throw new BadResquestException("This User have Order Bill !! ");
+        }
         user.setIsEnable(false);
         userRepository.save(user);
-        return ResponseEntity.ok("Disabe User with ID "+userId+" Seccess ");
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Disable User")
+                .avatar(accOfAdmin.getAvatar())
+                .content(accOfAdmin.getName() + " Disable User with ID " + user.getId())
+                .notificationStatus(NotificationStatus.ACCOUNT)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
+        return ResponseEntity.ok("Disabe User with ID " + userId + " Seccess ");
     }
 
-    public ResponseEntity<?> enableUser(Integer userId){
+    public ResponseEntity<?> enableUser(Integer userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> {
                     throw new NotFoundException("Not Found User with ID : " + userId);
@@ -171,7 +215,17 @@ public class AdminService {
         );
         user.setIsEnable(true);
         userRepository.save(user);
-        return ResponseEntity.ok("Enable User with ID "+userId+" Seccess ");
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Remove Blogger")
+                .avatar(accOfAdmin.getAvatar())
+                .content(accOfAdmin.getName() + " Enable User with ID " + user.getId())
+                .notificationStatus(NotificationStatus.ACCOUNT)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
+        return ResponseEntity.ok("Enable User with ID " + userId + " Seccess ");
     }
 
 
@@ -183,6 +237,16 @@ public class AdminService {
                 .thumbail(request.getThumbail())
                 .build();
         categoryRepository.save(category);
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Create Category New")
+                .avatar(accOfAdmin.getAvatar())
+                .content(accOfAdmin.getName() + " Create Category with ID " + category.getId())
+                .notificationStatus(NotificationStatus.UPDATE)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         return ResponseEntity.ok("Create Category seccess !! ");
     }
 
@@ -196,6 +260,15 @@ public class AdminService {
         category.setThumbail(request.getThumbail());
         category.setDescription(request.getDescription());
         categoryRepository.save(category);
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Update Category ")
+                .content(accOfAdmin.getName() + " Update Category with ID " + category.getId())
+                .notificationStatus(NotificationStatus.UPDATE)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         return ResponseEntity.ok("Update Category Seccess !! ");
     }
 
@@ -206,13 +279,22 @@ public class AdminService {
                     throw new NotFoundException("Not found Category with ID" + categoryId);
                 }
         );
-
+        Integer itemId = item.getId();
         List<Product> products = productRepository.findByCategory_Id(categoryId);
         for (Product product : products) {
             product.setCategory(acc);
             productRepository.save(product);
         }
         categoryRepository.delete(item);
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Delete Category ")
+                .content(accOfAdmin.getName() + " Delete Category with ID " + itemId)
+                .notificationStatus(NotificationStatus.UPDATE)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         return ResponseEntity.ok("Delete Category Seccesss !! ");
     }
 
@@ -224,6 +306,16 @@ public class AdminService {
                 .thumbail(request.getThumbail())
                 .build();
         brandRepository.save(brand);
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Create Brand New")
+                .avatar(accOfAdmin.getAvatar())
+                .content(accOfAdmin.getName() + " Create Brand with ID " + brand.getId())
+                .notificationStatus(NotificationStatus.UPDATE)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         return ResponseEntity.ok("Create Brand seccess !! ");
     }
 
@@ -237,7 +329,17 @@ public class AdminService {
         item.setDescription(request.getDescription());
         item.setThumbail(request.getThumbail());
         brandRepository.save(item);
-        return ResponseEntity.ok("Update Brand Seccess !! ");
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Update Brand New")
+                .avatar(accOfAdmin.getAvatar())
+                .content(accOfAdmin.getName() + " Update Brand with ID " + item.getId())
+                .notificationStatus(NotificationStatus.UPDATE)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
+        return ResponseEntity.ok("Update Brand Seccess !!");
     }
 
     public ResponseEntity<?> deleteBrand(Integer brandId) {
@@ -247,6 +349,7 @@ public class AdminService {
                     throw new NotFoundException("Not found Brand with ID" + brandId);
                 }
         );
+        Integer idOfitem = item.getId();
         List<Blog> blogs = blogRepository.findByBrand_Id(brandId);
         List<Product> products = productRepository.removeBrand(brandId);
         for (Product product : products) {
@@ -258,6 +361,16 @@ public class AdminService {
             blogRepository.save(blog);
         }
         brandRepository.delete(item);
+        User accOfAdmin = iCurrent.getUser();
+        Notification notification = Notification.builder()
+                .username(accOfAdmin.getName())
+                .title("Delete Brand New")
+                .avatar(accOfAdmin.getAvatar())
+                .content(accOfAdmin.getName() + " Delete Brand with ID " + idOfitem)
+                .notificationStatus(NotificationStatus.UPDATE)
+                .typeOf(1)
+                .build();
+        notificationRepository.save(notification);
         return ResponseEntity.ok("Delete Brand Seccess !! ");
     }
 
@@ -276,6 +389,41 @@ public class AdminService {
             throw new NotFoundException("Not found User with Id" + userId);
         }
         return user.get();
+    }
+
+    // service for Notication
+    public Page<NotificationInfo> getNotification(Integer page, Integer pageSize, Integer choose) {
+        if (choose == 2) {
+            return notificationRepository.findNoticationInfoAll(PageRequest.of(page, pageSize));
+        }
+        if (choose == 1) {
+            return notificationRepository.findByNouticationOfAdmin(PageRequest.of(page, pageSize));
+        }
+        return notificationRepository.findByNouticationOfUser(PageRequest.of(page, pageSize));
+    }
+
+    public List<NotificationInfo> getNotificationOfUser() {
+        List<NotificationInfo> notificationInfoList = notificationRepository.findByCreateAtAndTypeOfOrderByCreateAtDescOfUser(LocalDate.now().minusDays(1),0);
+         if(notificationInfoList.size() > 5){
+             return notificationInfoList.subList(0,4);
+         }
+         return notificationInfoList;
+    }
+    public List<NotificationInfo> getNotificationOfAdmin() {
+        List<NotificationInfo> notificationInfoList = notificationRepository.findByCreateAtAndTypeOfOrderByCreateAtDescOfAdmin(LocalDate.now().minusDays(1),1);
+        if(notificationInfoList.size() > 5){
+            return notificationInfoList.subList(0,4);
+        }
+        return notificationInfoList;
+    }
+    public ResponseEntity<?> deleteNotification(Integer notificationId) {
+        Notification item = notificationRepository.findById(notificationId).orElseThrow(
+                ()-> {
+                    throw new NotFoundException("Not found Notication ID with + "+notificationId);
+                }
+        );
+        notificationRepository.delete(item);
+        return ResponseEntity.ok("Delete Notification Seccess !! ");
     }
 
 
