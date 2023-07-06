@@ -28,6 +28,8 @@ public class Notification {
     private String title;
     @Column(name = "content")
     private String content;
+    @Column(name = "avatar")
+    private String avatar;
     @Column(name = "notificationStatus")
     @Enumerated(EnumType.STRING)
     private NotificationStatus notificationStatus;
