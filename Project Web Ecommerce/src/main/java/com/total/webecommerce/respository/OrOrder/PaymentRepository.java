@@ -6,6 +6,9 @@ import com.total.webecommerce.entity.projection.OfUser.TotalPaymentInfo;
 import com.total.webecommerce.entity.Payment;
 import com.total.webecommerce.entity.projection.OfUser.PaymentInfo;
 import com.total.webecommerce.entity.support.PaymentStatus;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,11 +18,38 @@ import java.util.Collection;
 import java.util.List;
 
 public interface PaymentRepository extends JpaRepository<Payment, Integer> {
-    @Query("select p from Payment p where p.user.email = ?1 and (p.paymentStatus = ?2 or  p.paymentStatus = ?3)")
-    List<PaymentInfo> findByUser_EmailAndPaymentStatus(String email, PaymentStatus paymentStatus, PaymentStatus paymentStatus1);
+    @Query("select p from Payment p where p.user.id = ?1 and (p.paymentStatus = ?2 or  p.paymentStatus = ?3)")
+    List<PaymentInfo> findByUser_IdlAndPaymentStatus(Integer userId, PaymentStatus paymentStatus, PaymentStatus paymentStatus1);
+
+    @Query("""
+            select p from Payment p
+            where p.user.id = ?1 and ( p.paymentStatus = ?2 or p.paymentStatus = ?3 or p.paymentStatus = ?4)
+            order by p.id DESC""")
+    Page<PaymentInfo> findByUser_IdAndPaymentStatusOrPaymentStatusOrderByIdDesc(Integer id, PaymentStatus paymentStatus, PaymentStatus paymentStatus1,PaymentStatus paymentStatus2, Pageable pageable);
+
+    @Query("""
+            select p from Payment p
+            where p.user.id = ?1 and ( p.paymentStatus = ?2 or p.paymentStatus = ?3 or p.paymentStatus = ?4)
+            order by p.id DESC""")
+    List<PaymentInfo> findPaymentsByUserId(Integer id, PaymentStatus paymentStatus, PaymentStatus paymentStatus1,PaymentStatus paymentStatus2);
+
+
 
     @Query("select p from Payment p where p.user.id = ?1 and p.paymentStatus = ?2")
     List<Payment> findByUser_IdAndPaymentStatus(Integer id, PaymentStatus paymentStatus);
+
+    @Query("select p from Payment p where p.paymentStatus = ?1 and p.createAt > ?2 order by p.id DESC")
+    Page<PaymentInfo> findByPaymentStatusOrderByIdDesc(Pageable pageable,PaymentStatus paymentStatus, LocalDate time);
+    @Query("select p from Payment p order by p.id DESC")
+    Page<PaymentInfo> findPayments(Pageable pageable);
+    @Query("select p from Payment p where p.paymentStatus= ?1 order by p.id DESC")
+    Page<PaymentInfo> findPayments(PaymentStatus paymentStatus,Pageable pageable);
+    @Query("select p from Payment p where  p.createAt > ?1 order by p.id DESC")
+    Page<PaymentInfo> findAllOrderByTime(LocalDate createAt,Pageable pageable);
+
+    @Query("select p from Payment p where p.createAt > ?1 order by p.id DESC")
+    Page<PaymentInfo> findByCreateAtGreaterThanOrderByIdAsc(LocalDate createAt, Pageable pageable);
+
 
 
 
@@ -38,11 +68,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
     List<Payment> getPaymentByStatus(PaymentStatus paymentStatus);
 
 
-//    @Query(nativeQuery = true, value = " SELECT SUM(a.price) AS Price FROM payment a where a.payment_status = :enumValue")
-//    Optional<TotalPaymentInfo> getPayment(@Param("enumValue")String status);
 
 
-    @Query("select p from Payment p where p.createAt > ?1")
+
+    @Query("select p from Payment p where p.createAt > ?1 order by p.id desc")
     List<PaymentInfo> findByCreateAt(LocalDate createAt);
 
 
@@ -67,14 +96,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
             "GROUP BY a.user.id " +
             "ORDER BY SUM(a.price) DESC")
     List<BestBuyer> getBuyer(PaymentStatus paymentStatus);
-
-
-
-
-
-
-
-
 
 
 
