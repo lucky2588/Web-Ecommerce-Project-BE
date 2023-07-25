@@ -1,10 +1,10 @@
 package com.total.webecommerce.controller;
 
 import com.total.webecommerce.entity.dto.BestBuyer;
-import com.total.webecommerce.entity.projection.NotificationInfo;
+import com.total.webecommerce.entity.projection.OfAdmin.NotificationInfo;
 import com.total.webecommerce.entity.projection.OfUser.ManagentUser;
-import com.total.webecommerce.entity.projection.OfUser.PaymentInfo;
 import com.total.webecommerce.entity.projection.OfUser.UserInfo;
+import com.total.webecommerce.entity.projection.Public.BlogInfo;
 import com.total.webecommerce.response.OverviewInfo;
 import com.total.webecommerce.resquest.OfOther.UpdateBrandRequest;
 import com.total.webecommerce.resquest.OfOther.UpdateCategoryRequest;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
 @RequestMapping("api/v1/admin")
-public class AdminController {
+public class AdminController  {
     @Autowired
     private AdminService service;
     // to do about get Infomation Total .... Dashoash
@@ -29,6 +29,11 @@ public class AdminController {
     public List<BestBuyer> getBuyer(){
         return service.getBestBuyer();
     }
+    @GetMapping("getBlogs")
+    public List<BlogInfo> getBlogs(){
+        return service.getBlogs();
+    }
+
     // service for User
     @GetMapping("getUser") // get Page with User
     public Page<UserInfo> getUser(@RequestParam(defaultValue = "0") Integer page , @RequestParam(defaultValue = "5") Integer pageSize){
@@ -117,21 +122,6 @@ public class AdminController {
 //
 //    }
 
-
-
-
-
-
-
-
-
-     // service for order bill , payment ....
-
-    // get Order Today
-    @GetMapping("getOrderToday")
-    public List<PaymentInfo> getPayments(){
-        return service.getPayments();
-    }
 
 
 
