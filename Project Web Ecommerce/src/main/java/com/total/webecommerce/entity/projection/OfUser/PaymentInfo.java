@@ -31,6 +31,10 @@ public interface PaymentInfo {
 
     AccountBankInfo getAccountBank();
     LocalDate getCreateAt();
+    String getReasonCancle();
+    LocalDate getReceived();
+    LocalDate getDelivery();
+
     UserInfo getUser();
     @RequiredArgsConstructor
     class PaymentInfoImpl implements PaymentInfo{
@@ -84,6 +88,21 @@ public interface PaymentInfo {
         @Override
         public AccountBankInfo getAccountBank() {
             return AccountBankInfo.of(payment.getAccountBank());
+        }
+
+        @Override
+        public String getReasonCancle() {
+            return payment.getReasonCancle();
+        }
+
+        @Override
+        public LocalDate getReceived() {
+            return payment.getReceived();
+        }
+
+        @Override
+        public LocalDate getDelivery() {
+            return payment.getDelivery();
         }
 
         @Override
