@@ -15,7 +15,7 @@ public class CreatePaymentResquest {
     private Integer orderId;
     @NotBlank(message = " không được để trống")
     private String address;
-    private String text;
+    private String note;
     private Double totalPrice;
     private Integer transport;
     private Integer categoryPayment;
