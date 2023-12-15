@@ -62,7 +62,7 @@ public class Product {
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
 
@@ -75,6 +75,10 @@ public class Product {
         if(numsSold == nums){
             this.status = false;
         }
+//        if(this.thumbail.isEmpty()){
+//            this.thumbail = this.ListImage.get(0);
+//        }
+
         if(this.discount != null){
             Double numbers = (double)(this.getPrice() *(100.0 - discount.getPercent()))/100;
             double roundedNumber = Math.round(numbers * 100.0) / 100.0;
@@ -91,6 +95,9 @@ public class Product {
     @Modifying
     @PreUpdate
     void PreUpdate(){
+        if(this.thumbail.isEmpty()){
+            this.thumbail = this.ListImage.get(0);
+        }
         this.sales = 0.0;
         if(this.discount != null){
             Double numbers = (double)(this.getPrice() *(100.0 - discount.getPercent()))/100;
@@ -102,4 +109,7 @@ public class Product {
         }
     }
 
+    public Double getPrice() {
+        return price == null ? 0D : price;
+    }
 }

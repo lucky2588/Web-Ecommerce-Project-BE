@@ -1,0 +1,173 @@
+package com.total.webecommerce.controller;
+
+import com.total.webecommerce.dto.BlogDTO;
+import com.total.webecommerce.dto.BrandWeb;
+import com.total.webecommerce.dto.CategoryWeb;
+import com.total.webecommerce.entity.Product;
+import com.total.webecommerce.entity.projection.*;
+import com.total.webecommerce.respository.ProductRepository;
+import com.total.webecommerce.resquest.CommentBlogResquest;
+import com.total.webecommerce.resquest.CommentProductResquest;
+import com.total.webecommerce.service.WebService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+@RestController
+@RequestMapping("api/v1/public")
+public class WebController {
+    @Autowired
+    private WebService webService;
+    @Autowired
+    private ProductRepository productRepository;
+
+//    // Các API về BlogWeb bao gồm : Lấy ra danh sách list Blog , Blog chi tiết ....
+//    @GetMapping("getBlogs")
+//    public Page<BlogInfo> getBlogs(@RequestParam(defaultValue = "0") Integer page,@RequestParam(defaultValue = "6") Integer pageSize){
+//        return webService.getBlogs(page,pageSize);
+//    }
+// // lấy danh sách Blog Chi tiết theo Id trả về
+//    @GetMapping("blog/{blogId}")
+//    public BlogInfo getBlogById(@PathVariable Integer blogId){
+//        return webService.getBlogById(blogId);
+//    }
+//     // lấy danh sách top 4 Blog có view cao nhất
+//    @GetMapping("blog/topView")
+//    public List<BlogDTO> getBlogTopView(){
+//        return webService.getBlogByView();
+//    }
+//
+//    // lấy danh sách comment của Blog
+//    @GetMapping("commentBlog/{blogId}")
+//    public List<CommentBlog> getCommentBlog(@PathVariable Integer blogId){
+//        return webService.getBlogWithComment(blogId);
+//    }
+//
+//    // Gửi comment cho Blog
+//    @PostMapping("sendCommentBlog/{blogId}")
+//    public ResponseEntity<?> sendCommentBlog(@PathVariable Integer blogId ,@Valid @RequestBody CommentBlogResquest comment){
+//        return webService.sendCommentOfBlog(blogId,comment);
+//    }
+//
+//    // tìm 2 bài blog có nội dung tương tự
+//    @GetMapping("findBrand/{blogId}/{brandId}")
+//    public List<BlogDTO> findBrand(@PathVariable Integer blogId,@PathVariable Integer brandId){
+//        return webService.findBrand(blogId,brandId);
+//    }
+ // Lấy danh sách Category Web
+    @GetMapping("getCategories")
+    public List<CategoryWeb> getCategories(){
+        return webService.getCategory();
+    }
+    // Lấy danh sách Brand Web
+    @GetMapping("getBrand")
+    public List<BrandWeb> getBrand(){
+        return webService.getBrand();
+    }
+
+    @GetMapping("getBrandformCategory/{categoryId}")
+    public List<BrandWeb> getBrandformCategory(@PathVariable Integer categoryId){
+        return webService.getBrandbyCategory(categoryId);
+    }
+//    // Các API về Product
+//    @GetMapping("getProducts/bestSeller") // lấy danh sách SP bán chạy nhất
+//    public ResponseEntity<?> getProductsBestSeller(@RequestParam(defaultValue = "0") Integer page , @RequestParam(defaultValue = "8") Integer pageSize){
+//        return webService.getProductsBestSeller(page,pageSize);
+//    }
+//
+//    @GetMapping("getProducts/viewTop") // lấy danh sách có lượt view Top
+//    public ResponseEntity<?> getProductViewTop(@RequestParam(defaultValue = "0") Integer page , @RequestParam(defaultValue = "8") Integer pageSize){
+//        return webService.getProductsTopView(page,pageSize);
+//    }
+//    @GetMapping("getProducts/ProductSales") // lấy danh sách có lượt view Top
+//    public ResponseEntity<?> getProductSales(@RequestParam(defaultValue = "0") Integer page , @RequestParam(defaultValue = "8") Integer pageSize){
+//        return webService.getProductSales(page,pageSize);
+//    }
+//    @GetMapping("getProducts/newArrival") // lấy danh sách có lượt view Top
+//    public ResponseEntity<?> getProductNewArrival(@RequestParam(defaultValue = "0") Integer page , @RequestParam(defaultValue = "8") Integer pageSize){
+//        return webService.getProductNew(page,pageSize);
+//    }
+//    // Lấy danh sách lọc theo filter
+//    @GetMapping("getProductsFilter")
+//    public Page<ProductInfo> getProductsFilter(@RequestParam(required = false) Integer categoryId,
+//                                               @RequestParam(required = false) Integer brandId,
+//                                               @RequestParam(required = false) Long price,
+//                                               @RequestParam(defaultValue = "0") Integer page,
+//                                               @RequestParam(defaultValue = "5") Integer pageSize
+//    ) {
+//        return webService.getProductFilter(brandId, categoryId,price,page,pageSize);
+//    }
+//
+//    @GetMapping("ProductAboutCategory")
+//    public Page<ProductInfo> getProductsFilterAboutCategory(@RequestParam(required = false) Integer categoryId,
+//                                               @RequestParam(required = false) Long price,
+//                                               @RequestParam(defaultValue = "0") Integer page,
+//                                               @RequestParam(defaultValue = "5") Integer pageSize
+//    ) {
+//        return webService.getProductFilterAboutCategory(categoryId,price,page,pageSize);
+//    }
+//
+//    @GetMapping("getProductTopView")
+//    public List<ProductInfo> getProductTopview(){
+//        return webService.getTopProductView().subList(0,4);
+//    }
+//
+//    @GetMapping("getProductTopSeller")
+//    public List<ProductInfo> getProductBestSeller(){
+//        return webService.getTopProductSeller().subList(0,4);
+//    }
+//
+//
+//
+//   @GetMapping("getProduct/{productId}")
+//    public Product getProductById(@PathVariable Integer productId){
+//        return webService.getProductById(productId);
+//   }
+//
+//   // Lấy danh sách cmt cho product
+//    @GetMapping("getCommentProduct/{productId}")
+//    public List<CommentProductInfo> getCommentProduct(@PathVariable Integer productId){
+//        return webService.getCommentForProduct(productId);
+//    }
+//
+//    // lấy danh sách sp tương tự cho Blog
+//    @GetMapping("getProductSimilar/{brandId}")
+//    public List<ProductInfo> getProductByBrand(@PathVariable Integer brandId){
+//        return webService.getProductSimilarForBlog(brandId);
+//    }
+//
+//    @GetMapping("getProductSimilar/{productId}/{brandId}")
+//    public List<ProductInfo> getProductByBrand(@PathVariable Integer productId,@PathVariable Integer brandId){
+//        return webService.getProductSimilar(productId,brandId);
+//    }
+//
+//    // Xử lí gửi comment product gửi lên
+//    @PostMapping("sendCommentProduct/{productId}")
+//    public ResponseEntity<?> sendCommentProduct(@PathVariable Integer productId , @Valid @RequestBody CommentProductResquest resquest){
+//        return webService.sendCommentProduct(productId,resquest);
+//    }
+//
+//  @GetMapping("getProductForBlog/{brandId}")
+//    public List<ProductInfo> getProductForBlog(@PathVariable Integer brandId){
+//        return webService.getProductSimilarForBlog(brandId);
+//  }
+//  // tìm kiếm SP theo tên
+//    @GetMapping("searchProduct")
+//    public Page<ProductInfo> searchProduct(@RequestParam String title,@RequestParam(defaultValue = "0") Integer page,@RequestParam(defaultValue = "8") Integer pageSize ){
+//        return webService.searchProduct(title, PageRequest.of(page,pageSize));
+//    }
+
+  @GetMapping("test")
+    public Long test(){
+        return (long) productRepository.findBrandByCategory(1,1);
+  }
+
+
+}

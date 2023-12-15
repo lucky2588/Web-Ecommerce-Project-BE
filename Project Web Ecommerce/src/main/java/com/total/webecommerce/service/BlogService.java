@@ -3,10 +3,13 @@ import com.total.webecommerce.entity.dto.BlogDTO;
 import com.total.webecommerce.entity.*;
 import com.total.webecommerce.entity.projection.Public.BlogInfo;
 import com.total.webecommerce.entity.projection.Public.CommentBlog;
+import com.total.webecommerce.entity.support.NotificationStatus;
+import com.total.webecommerce.exception.BadResquestException;
 import com.total.webecommerce.exception.NotFoundException;
 import com.total.webecommerce.mapper.BlogMapper;
-import com.total.webecommerce.respository.NotificationRepository;
+import com.total.webecommerce.respository.OfAdmin.NotificationRepository;
 import com.total.webecommerce.respository.OfAdmin.BrandRepository;
+import com.total.webecommerce.respository.OfAdmin.RoleRepository;
 import com.total.webecommerce.respository.OfUser.UserRepository;
 import com.total.webecommerce.respository.OrBlog.BlogRepository;
 import com.total.webecommerce.respository.OrBlog.CommentOfBlogRepository;
@@ -28,6 +31,8 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class BlogService {
+    @Autowired
+    private RoleRepository roleRepository;
     @Autowired
     private ImageBlogRepository imageBlogRepository;
     @Autowired
@@ -59,14 +64,13 @@ public class BlogService {
         blogRepository.save(blog);
         return blogInfo.get();
     }
-
     // lấy top danh sách bài viết có lượt xem nhiều nhất
     public List<BlogDTO> getBlogByView() {
         return blogRepository.getBlogsHaveViewTop().stream().map(e -> BlogMapper.toBlogDto(e)).toList();
     }
     // lấy danh sách comment của Blog
-    public List<CommentBlog> getBlogWithComment(Integer blogId) {
-        return commentOfBlog.findByBlog_Id(blogId);
+    public Page<CommentBlog> getBlogWithComment(Integer page , Integer pageSize ,Integer blogId) {
+        return commentOfBlog.findByBlog_IdOrderByIdDesc(blogId,PageRequest.of(page,pageSize));
     }
 
     public ResponseEntity<?> sendCommentOfBlog(Integer blogId, CommentBlogResquest comment) {
@@ -81,14 +85,22 @@ public class BlogService {
                 .user(user.get())
                 .build();
         commentOfBlog.save(comment1);
-        return ResponseEntity.ok("Thành công !! ");
+        Notification notification = Notification.builder()
+                .username(user.get().getName())
+                .avatar(user.get().getAvatar())
+                .typeOf(0)
+                .content(user.get().getName()+" : "+comment.getCommentOfUser())
+                .title("Post comment for Blog ID "+blogId)
+                .notificationStatus(NotificationStatus.COMMENT)
+                .build();
+        notificationRepository.save(notification);
+
+        return ResponseEntity.ok("Đăng bình luận thành công !! ");
     }
     public List<BlogDTO> findBrand(Integer blogId, Integer brandId) {
         return blogRepository.findBrand(brandId, blogId).stream().map(blog -> BlogMapper.toBlogDto(blog)).toList();
     }
-
     // to do : for Admin
-
     public Page<BlogInfo> getBlogsOfAdmin(Integer page, Integer pageSize) {
         return blogRepository.findBlogsAdmin(PageRequest.of(page, pageSize));
     }
@@ -112,8 +124,10 @@ public class BlogService {
         Notification notification = Notification.builder()
                 .username(user.getName())
                 .typeOf(1)
+                .avatar(user.getAvatar())
                 .content(user.getUsername()+"Update Blog with ID : "+resquest.getBlogId())
                 .title("Update Blog ")
+                .notificationStatus(NotificationStatus.UPDATE)
                 .build();
         notificationRepository.save(notification);
         return ResponseEntity.ok("Update for Blog success !! ");
@@ -139,8 +153,10 @@ public class BlogService {
         Notification notification = Notification.builder()
                 .username(user.getName())
                 .typeOf(1)
+                .avatar(user.getAvatar())
                 .content(user.getName()+"Create Blog have Title " +blog.getTitle())
                 .title("Create Blog ")
+                .notificationStatus(NotificationStatus.UPDATE)
                 .build();
         notificationRepository.save(notification);
         return blog.getId();
@@ -153,16 +169,36 @@ public class BlogService {
             imageBlogRepository.delete(imageOfBlogs.get(i));
         }
         User user = iCurrent.getUser();
-        log.info("Vào đây delete Blog 1");
+
         blogRepository.delete(blog);
-        log.info("Vào đây delete Blog 2");
         Notification notification = Notification.builder()
                 .username(user.getName())
                 .typeOf(1)
-                .content(user.getUsername()+"Delete Blog has Title " +blog.getTitle())
+                .avatar(user.getAvatar())
+                .content(user.getName()+"Delete Blog Has Title " +blog.getTitle())
                 .title("Delete Blog ")
+                .notificationStatus(NotificationStatus.UPDATE)
                 .build();
         notificationRepository.save(notification);
         return ResponseEntity.ok("Delete Blog Seccess !! ");
+    }
+
+    public void deleteCommentOfBlog(Integer commentId) {
+        User user = iCurrent.getUser();
+        CommentOfBlog cmt = commentOfBlog.findById(commentId).orElseThrow(
+                ()-> {
+                    throw new NotFoundException("Not found this comment with ID "+commentId);
+                }
+        );
+        Role role = roleRepository.findById(1).orElseThrow(
+                ()-> {
+                    throw new NotFoundException("Not found Role ");
+                }
+        );
+
+        if(user.getId() != cmt.getUser().getId() && !user.getRoles().equals(role)){
+            throw new BadResquestException("Bạn không có quyền !! ");
+        }
+        commentOfBlog.delete(cmt);
     }
 }

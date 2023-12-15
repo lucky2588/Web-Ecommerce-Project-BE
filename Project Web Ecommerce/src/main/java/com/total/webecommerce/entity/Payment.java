@@ -25,12 +25,18 @@ public class Payment {
     private Integer type;
     @Column(name = "text")
     private String text;
+    @Column(name = "reasonCancle")
+    private String reasonCancle;
     @Column(name = "thumbail")
     private String thumbail;
     @Column(name = "price")
     private Double price;
     @Column(name = "createAt")
     private LocalDate createAt;
+    @Column(name = "delivery")
+    private LocalDate delivery;
+    @Column(name = "received")
+    private LocalDate received;
     @Column(name = "paymentStatus")
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
@@ -40,7 +46,7 @@ public class Payment {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_bill_id",unique = true)
     private OrderBill orderBill;
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne
     @JoinColumn(name = "account_bank_id")
     private AccountBank accountBank;
 
@@ -61,6 +67,8 @@ public class Payment {
     @PreRemove
     public void PreRemove(){
         this.setUser(null);
+        this.setOrderBill(null);
+        this.setAccountBank(null);
     }
 
 }

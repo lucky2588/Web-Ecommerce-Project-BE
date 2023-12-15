@@ -19,12 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     private UserService userService;
-    @Autowired
-    private OrderSerivce orderSerivce;
-    @Autowired
-    private FavoritesRepository favorites;
-    @Autowired
-    private ProductRepository productRepository;
+
     @GetMapping("getUser")
     public UserInfo getUser(@RequestParam String email) {
         return userService.getUser(email);
@@ -38,9 +33,7 @@ public class UserController {
     @PostMapping("updateUser/{userId}")
     public ResponseEntity<?> updateUser(@PathVariable Integer userId, @Valid @RequestBody UploadInfoUser resquest) {
         return userService.uploadUser(userId, resquest);
-
     }
-
     @GetMapping("findFavorites")
     public WishListResponse getFavorites(@RequestParam String email) {
         return userService.findFavorites(email);
@@ -55,6 +48,8 @@ public class UserController {
     public ResponseEntity<?> removeItem(@RequestBody AddWishList resquest) {
         return userService.removeWishList(resquest);
     }
+
+
 
 
 }

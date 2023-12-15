@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
-
 @Builder
 @Getter
 @Setter
@@ -61,7 +60,6 @@ public class User implements Serializable , UserDetails {
         });
         return authorities;
     }
-
     @Override
     public String getUsername() {
         return this.email;
@@ -70,35 +68,26 @@ public class User implements Serializable , UserDetails {
     public String getPassword() {
         return this.password;
     }
-
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
-
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
-
     @Override
     public boolean isEnabled() {
         return this.isEnable;
     }
-
-
     @PreRemove
     void PreRemove(){
         for (Role role : this.roles){
             role = null;
         }
     }
-
-
-
 }

@@ -2,14 +2,17 @@ package com.total.webecommerce.service;
 
 import com.total.webecommerce.entity.*;
 import com.total.webecommerce.entity.dto.BestBuyer;
-import com.total.webecommerce.entity.projection.NotificationInfo;
+import com.total.webecommerce.entity.projection.OfAdmin.NotificationInfo;
 import com.total.webecommerce.entity.projection.OfUser.ManagentUser;
 import com.total.webecommerce.entity.projection.OfUser.PaymentInfo;
 import com.total.webecommerce.entity.projection.OfUser.UserInfo;
+import com.total.webecommerce.entity.projection.Public.BlogInfo;
+import com.total.webecommerce.entity.support.ChartJ;
 import com.total.webecommerce.entity.support.NotificationStatus;
 import com.total.webecommerce.entity.support.PaymentStatus;
 import com.total.webecommerce.exception.BadResquestException;
 import com.total.webecommerce.exception.NotFoundException;
+import com.total.webecommerce.response.ChartjResponse;
 import com.total.webecommerce.response.OverviewInfo;
 import com.total.webecommerce.respository.OfAdmin.NotificationRepository;
 import com.total.webecommerce.respository.OfAdmin.BrandRepository;
@@ -34,6 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,8 +74,8 @@ public class AdminService {
     // Info Garrenal
     public OverviewInfo getInfoGarenal() {
         Integer numsPaymentSuccess = paymentRepository.findByPaymentStatus(PaymentStatus.SUCCESS).size();
-        Integer numsOrder = paymentRepository.findByPaymentStatus(PaymentStatus.INITIAL).size();
-        Integer numsBill = paymentRepository.findByPaymentStatus(PaymentStatus.PROCEED).size();
+        Integer numsOrder = paymentRepository.findAll().size();
+        Integer numsBill = paymentRepository.findByPaymentStatus(PaymentStatus.INITIAL).size();
         List<Payment> listPayment = paymentRepository.getPaymentByStatus(PaymentStatus.SUCCESS);
         double total = 0.0;
         for (int i = 0; i < listPayment.size(); i++) {
@@ -89,6 +93,10 @@ public class AdminService {
                 .orderProcess(numsBill)
                 .build();
         return objInfo;
+    }
+
+    public List<BlogInfo> getBlogs() {
+        return blogRepository.findBlogsNew().subList(0, 5);
     }
 
     // service for User ...
@@ -374,15 +382,6 @@ public class AdminService {
         return ResponseEntity.ok("Delete Brand Seccess !! ");
     }
 
-    // service to Order
-    public List<PaymentInfo> getPayments() {
-        List<PaymentInfo> PaymentList = paymentRepository.findByCreateAt(LocalDate.now().minusDays(3));
-        if (PaymentList.isEmpty()) {
-            throw new NotFoundException("Not found order this day ");
-        }
-        return PaymentList;
-    }
-
     public ManagentUser getUserById(Integer userId) {
         Optional<ManagentUser> user = userRepository.findUser(userId);
         if (user.isEmpty()) {
@@ -403,28 +402,129 @@ public class AdminService {
     }
 
     public List<NotificationInfo> getNotificationOfUser() {
-        List<NotificationInfo> notificationInfoList = notificationRepository.findByCreateAtAndTypeOfOrderByCreateAtDescOfUser(LocalDate.now().minusDays(1),0);
-         if(notificationInfoList.size() > 5){
-             return notificationInfoList.subList(0,4);
-         }
-         return notificationInfoList;
-    }
-    public List<NotificationInfo> getNotificationOfAdmin() {
-        List<NotificationInfo> notificationInfoList = notificationRepository.findByCreateAtAndTypeOfOrderByCreateAtDescOfAdmin(LocalDate.now().minusDays(1),1);
-        if(notificationInfoList.size() > 5){
-            return notificationInfoList.subList(0,4);
+        List<NotificationInfo> notificationInfoList = notificationRepository.findByCreateAtAndTypeOfOrderByCreateAtDesc(LocalDate.now().minusDays(1), 0);
+        if (notificationInfoList.size() > 5) {
+            return notificationInfoList.subList(0, 4);
         }
         return notificationInfoList;
     }
+
+    public List<NotificationInfo> getNotificationOfAdmin() {
+        List<NotificationInfo> notificationInfoList = notificationRepository.findByCreateAtAndTypeOfOrderByCreateAtDesc(LocalDate.now().minusDays(1), 1);
+        if (notificationInfoList.size() > 5) {
+            return notificationInfoList.subList(0, 4);
+        }
+        return notificationInfoList;
+    }
+
     public ResponseEntity<?> deleteNotification(Integer notificationId) {
         Notification item = notificationRepository.findById(notificationId).orElseThrow(
-                ()-> {
-                    throw new NotFoundException("Not found Notication ID with + "+notificationId);
+                () -> {
+                    throw new NotFoundException("Not found Notication ID with + " + notificationId);
                 }
         );
         notificationRepository.delete(item);
         return ResponseEntity.ok("Delete Notification Seccess !! ");
     }
 
+    // Service for Order..
 
+    public Page<PaymentInfo> getOrderAll(Integer page, Integer pageSize, Integer choose, Integer time) {
+        if (choose == 1) {
+            if (time == 1) {
+                return paymentRepository.findPayments(PageRequest.of(page, pageSize));
+            }
+            if (time == 2) {
+                return paymentRepository.findByCreateAtGreaterThanOrderByIdAsc(LocalDate.now().minusDays(7), PageRequest.of(page, pageSize));
+            }
+            if (time == 3) {
+                return paymentRepository.findByCreateAtGreaterThanOrderByIdAsc(LocalDate.now().minusDays(31), PageRequest.of(page, pageSize));
+            }
+        }
+        if (choose == 2) {
+            if (time == 1) {
+                return paymentRepository.findPayments(PaymentStatus.SUCCESS, PageRequest.of(page, pageSize));
+            }
+            if (time == 2) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.SUCCESS, LocalDate.now().minusWeeks(1));
+            }
+            if (time == 3) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.SUCCESS, LocalDate.now().minusMonths(1));
+            }
+        }
+        if (choose == 3) {
+            if (time == 1) {
+                return paymentRepository.findPayments(PaymentStatus.INITIAL, PageRequest.of(page, pageSize));
+            }
+            if (time == 2) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.INITIAL, LocalDate.now().minusWeeks(1));
+            }
+            if (time == 3) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.INITIAL, LocalDate.now().minusMonths(1));
+            }
+        }
+        if (choose == 4) {
+            if (time == 1) {
+                return paymentRepository.findPayments(PaymentStatus.PROCEED, PageRequest.of(page, pageSize));
+            }
+            if (time == 2) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.PROCEED, LocalDate.now().minusWeeks(1));
+            }
+            if (time == 3) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.PROCEED, LocalDate.now().minusMonths(1));
+            }
+        }
+        if (choose == 5) {
+            if (time == 1) {
+                return paymentRepository.findPayments(PaymentStatus.CANCLE, PageRequest.of(page, pageSize));
+            }
+            if (time == 2) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.CANCLE, LocalDate.now().minusDays(7));
+            }
+            if (time == 3) {
+                return paymentRepository.findByPaymentStatusOrderByIdDesc(PageRequest.of(page, pageSize), PaymentStatus.CANCLE, LocalDate.now().minusDays(31));
+            }
+        }
+        return paymentRepository.findPayments(PageRequest.of(page, pageSize));
+    }
+
+    public PaymentInfo getPaymentById(Integer paymentId) {
+        return paymentRepository.findById_Payment(paymentId);
+    }
+
+
+    // service for ChartJ
+    public ChartjResponse getTarget(Integer choose){ //get Fintech
+        ChartjResponse response = new ChartjResponse();
+        List<LocalDate> time = new ArrayList<>();
+        List<Double> totalPrice = new ArrayList<>();
+        if(choose == 1){
+            for (int i = 0; i <5 ; i++){
+                time.add(LocalDate.now().minusDays(i+1));
+            }
+            for (int i = 0; i <5 ; i++){
+                totalPrice.add(0.0);
+            }
+            List<ChartJ> chartJList = paymentRepository.getTarget(LocalDate.now().minusDays(7));
+            for (int i = 0; i <chartJList.size() ; i++) {
+                for (int j = 0; j < time.size();j++){
+                    if(chartJList.get(i).getReceived() == time.get(j)){
+                        totalPrice.add(j,chartJList.get(i).getTotalPrice());
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        for (int i = 0; i <5 ; i++){
+            time.add(LocalDate.now().minusDays(i+1));
+        }
+
+        response.setTime(time);
+        response.setTotalPrice(totalPrice);
+        return response;
+    }
 }

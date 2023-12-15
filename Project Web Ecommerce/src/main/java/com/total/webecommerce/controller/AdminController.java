@@ -5,6 +5,7 @@ import com.total.webecommerce.entity.projection.OfAdmin.NotificationInfo;
 import com.total.webecommerce.entity.projection.OfUser.ManagentUser;
 import com.total.webecommerce.entity.projection.OfUser.UserInfo;
 import com.total.webecommerce.entity.projection.Public.BlogInfo;
+import com.total.webecommerce.response.ChartjResponse;
 import com.total.webecommerce.response.OverviewInfo;
 import com.total.webecommerce.resquest.OfOther.UpdateBrandRequest;
 import com.total.webecommerce.resquest.OfOther.UpdateCategoryRequest;
@@ -115,13 +116,11 @@ public class AdminController  {
         return service.deleteNotification(notificationID);
     }
 
-
-    // service for product ....
-//    @GetMapping("ProductTop")
-//    public List<OrderItemInfo> getProductTop(){
-//
-//    }
-
+    // serice for ChartJ
+    @GetMapping("getTarget/{choose}")
+    public ChartjResponse getTarget(@PathVariable Integer choose){
+        return service.getTarget(choose);
+    }
 
 
 

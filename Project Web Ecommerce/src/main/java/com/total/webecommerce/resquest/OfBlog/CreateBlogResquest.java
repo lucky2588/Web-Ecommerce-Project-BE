@@ -1,6 +1,7 @@
 package com.total.webecommerce.resquest.OfBlog;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,12 +14,18 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 @NoArgsConstructor
 public class CreateBlogResquest {
-    @NotEmpty(message = "Đây là trường không được để trống ")
+    @NotNull(message = "Không được để trống")
     private String title;
-    @NotEmpty(message = "Đây là trường không được để trống ")
+    @NotNull(message = "Không được để trống")
     private String content;
-    @NotEmpty(message = "Đây là trường không được để trống ")
+    @NotNull(message = "Không được để trống")
     private String description;
+    @NotNull(message = "Không được để trống")
+    private String detail;
+    @NotNull(message = "Không được để trống")
+    private Double price;
+    @NotNull(message = "Không được để trống")
+    private Integer nums;
     private Integer brandId;
     private Integer publicOf;
 }

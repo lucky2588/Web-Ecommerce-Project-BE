@@ -1,0 +1,20 @@
+ Đồ án cá Nhân : các vẫn đề cần giải quyết 
+
+
+
+=> các hàm thông báo ko đc hiện thị trước khi chuyển trang 
+
+AxiosError: Request failed with status code 500 => gọi thành công thi thoảng bắn ra lỗi này ... khi xóa SP 
+=> khi ấn chuyển trang category trong List Product phải ấn 2 lần ?? 
+
+
+
+
+Ngày 5/7 : 
+ 
+
+ xử lí quên mật khẩu TK 
+ xử lí Push đồ án lên github 
+xử lí From Product 
+
+

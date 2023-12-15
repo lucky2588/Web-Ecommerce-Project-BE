@@ -49,8 +49,6 @@ public class UserService {
                 }
         );
     }
-
-
     public ResponseEntity<?> changePassword(ChangePassword resquest) {
 
         String passNew = encoder.encode(resquest.getPasswordNew());

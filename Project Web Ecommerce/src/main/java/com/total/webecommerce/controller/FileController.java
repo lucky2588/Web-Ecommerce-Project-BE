@@ -2,6 +2,7 @@ package com.total.webecommerce.controller;
 
 import com.total.webecommerce.entity.Image;
 import com.total.webecommerce.entity.ImageBlog;
+import com.total.webecommerce.entity.ImageProduct;
 import com.total.webecommerce.response.FileResponse;
 import com.total.webecommerce.service.FileService;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,23 @@ public class FileController {
                 .body(images.getData());
     }
 
+
+
+    // 2. Upload Ảnh của Product
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PostMapping("product/{productId}")
+    public ResponseEntity<?> uploadFileProduct(@ModelAttribute("file") MultipartFile file,@PathVariable Integer productId) {
+        FileResponse fileResponse = fileService.uploadImageProduct(file,productId);
+        return new ResponseEntity<>(fileResponse, HttpStatus.CREATED);
+    }
+
+@GetMapping("product/{productId}/{productImageId}")
+public ResponseEntity<?> getImageProduct(@PathVariable int productId,@PathVariable int productImageId){
+    ImageProduct images = fileService.readProductImage(productId,productImageId);
+    return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(images.getType()))
+            .body(images.getData());
+}
 
 
 }

@@ -10,7 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 public class CommentProductResquest {
-
     private String email;
     @NotNull(message = "Không được để trống bình luận  ")
     private String contentComment;

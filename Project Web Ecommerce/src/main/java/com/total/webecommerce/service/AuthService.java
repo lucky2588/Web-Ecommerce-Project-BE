@@ -1,12 +1,13 @@
 package com.total.webecommerce.service;
 
 import com.total.webecommerce.entity.*;
+import com.total.webecommerce.entity.support.NotificationStatus;
 import com.total.webecommerce.exception.BadResquestException;
 import com.total.webecommerce.exception.ConfirmTokenException;
 import com.total.webecommerce.exception.NotFoundException;
 import com.total.webecommerce.mapper.UserMapper;
 import com.total.webecommerce.response.AuthResponse;
-import com.total.webecommerce.respository.NotificationRepository;
+import com.total.webecommerce.respository.OfAdmin.NotificationRepository;
 import com.total.webecommerce.respository.OfAdmin.EmailRepository;
 import com.total.webecommerce.respository.OfAdmin.RoleRepository;
 import com.total.webecommerce.respository.OfAdmin.TokenRepository;
@@ -33,8 +34,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
-
-import static ch.qos.logback.classic.spi.ThrowableProxyVO.build;
 
 
 @Service
@@ -92,6 +91,7 @@ public class AuthService {
                         .user(users.get())
                         .build();
                 tokenRepository.save(token);
+
                 emailService.sendEmail(resquest.getEmail(), "Xác mình tài khoản", "http://localhost:8888/confimToken/" + token.getTokenUser());
                 return ResponseEntity.ok("Email này đã được đăng kí nhưng chưa kích hoạt , chúng tôi đã gửi mã kích hoạt của bạn ở phần Email");
             }
@@ -112,12 +112,14 @@ public class AuthService {
                 .tokenUser(newUUID)
                 .build();
         tokenRepository.save(token);
-        Email email = Email.builder()
-                .email(resquest.getEmail())
-                .title("Xác Minh Tài Khoản")
-                .content("Mã Token của bạn : " + token.getTokenUser())
+        Notification notification = Notification.builder()
+                .username(user.getName())
+                .title("Register Account")
+                .content(user.getName()+" Create Account New with Email " +user.getEmail())
+                .notificationStatus(NotificationStatus.ACCOUNT)
+                .typeOf(0)
                 .build();
-        emailRepository.save(email);
+        notificationRepository.save(notification);
         emailService.sendEmail(resquest.getEmail(), "Xác mình tài khoản", "Mã Token của bạn : " + token.getTokenUser());
         return ResponseEntity.ok("Khởi tạo mật khẩu thành công, hãy đăng nhập địa chỉ Email của bạn đã xác minh tài khoản ");
     }
@@ -156,9 +158,11 @@ public class AuthService {
         tokenRepository.save(token);
        Notification notification = Notification.builder()
                .username(userOptional.get().getName())
-               .title("forgetPassword")
-               .content(userOptional.get().getName()+" forgetPassword , send token to Email "+userOptional.get().getEmail())
+               .title("Forget Password")
+               .avatar(userOptional.get().getAvatar())
+               .content(userOptional.get().getName()+" Forget Password , send token to Email "+userOptional.get().getEmail())
                .typeOf(0)
+               .notificationStatus(NotificationStatus.ACCOUNT)
                .build();
        notificationRepository.save(notification);
        emailService.sendEmail(userOptional.get().getEmail(), "Xác minh tài khoản ", "Mã Code để xác minh tài khoản của bạn : " + token.getTokenUser());
@@ -180,6 +184,15 @@ public class AuthService {
        String passNew = UUID.randomUUID().toString();
        user.get().setPassword(encoder.encode(passNew));
        userRepository.save(user.get());
+        Notification notification = Notification.builder()
+                .username(user.get().getUsername())
+                .title("Confirm Email")
+                .avatar(user.get().getAvatar())
+                .content(user.get().getName() +" Comfirm Password  with Email " +user.get().getEmail())
+                .notificationStatus(NotificationStatus.ACCOUNT)
+                .typeOf(0)
+                .build();
+        notificationRepository.save(notification);
         Email email1 = Email.builder()
                 .email(email)
                 .title("Mật Khẩu Mới Của Bạn")

@@ -1,0 +1,201 @@
+package com.total.webecommerce.service;
+
+import com.total.webecommerce.dto.BlogDTO;
+import com.total.webecommerce.dto.BrandWeb;
+import com.total.webecommerce.dto.CategoryWeb;
+import com.total.webecommerce.entity.*;
+import com.total.webecommerce.entity.projection.*;
+import com.total.webecommerce.exception.NotFoundException;
+import com.total.webecommerce.mapper.BlogMapper;
+import com.total.webecommerce.mapper.CategoryMapper;
+import com.total.webecommerce.respository.*;
+import com.total.webecommerce.resquest.CommentBlogResquest;
+import com.total.webecommerce.resquest.CommentProductResquest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class WebService {
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private BlogRepository blogRepository;
+    @Autowired
+    private CommentOfBlogRepository commentOfBlog;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private CommentProductRepository commentProductRepository;
+    @Autowired
+    private BrandRepository brandRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+//    // Public về Blog Page
+//    public Page<BlogInfo> getBlogs(Integer page, Integer pageSize) {
+//        return blogRepository.findBlogs(PageRequest.of(page, pageSize));
+//    }
+//
+//    // lấy danh sách blog theo ID
+//    public BlogInfo getBlogById(Integer blogId) {
+//        Optional<BlogInfo> blogInfo = blogRepository.findBlogbyId(blogId);
+//        if (blogInfo.isEmpty()) {
+//            throw new NotFoundException("Không tìm thấy Blog nào với ID này !! ");
+//        }
+//        Blog blog = blogRepository.findById(blogId).orElse(null);
+//        blog.setViewBlog(blogInfo.get().getViewBlog() + 1);
+//        blogRepository.save(blog);
+//        return blogInfo.get();
+//    }
+//
+//    // lấy top danh sách bài viết có lượt xem nhiều nhất
+//    public List<BlogDTO> getBlogByView() {
+//        return blogRepository.getBlogsHaveViewTop().stream().map(e -> BlogMapper.toBlogDto(e)).toList();
+//    }
+//    // lấy danh sách comment của Blog
+//    public List<CommentBlog> getBlogWithComment(Integer blogId) {
+//        return commentOfBlog.findByBlog_Id(blogId);
+//    }
+//
+//    public ResponseEntity<?> sendCommentOfBlog(Integer blogId, CommentBlogResquest comment) {
+//        Blog blog = blogRepository.findById(blogId).orElse(null);
+//        Optional<User> user = userRepository.findByEmail(comment.getEmail());
+//        if (user.isEmpty()) {
+//            throw new NotFoundException("Khong tìm thấy User này !! ");
+//        }
+//        CommentOfBlog comment1 = CommentOfBlog.builder()
+//                .blog(blog)
+//                .content(comment.getCommentOfUser())
+//                .user(user.get())
+//                .build();
+//        commentOfBlog.save(comment1);
+//        return ResponseEntity.ok("Thành công !! ");
+//    }
+
+    //      // Lấy danh sách bài Blog tương tự
+    public List<BlogDTO> findBrand(Integer blogId, Integer brandId) {
+        return blogRepository.findBrand(brandId, blogId).stream().map(blog -> BlogMapper.toBlogDto(blog)).toList();
+    }
+
+    // Lấy danh sách về Category
+    public List<CategoryWeb> getCategory() {
+        return categoryRepository.findAll().stream().map(e -> {
+            return new CategoryWeb(e.getId(), e.getName(), e.getThumbail(), productRepository.countByCategory_Id(e.getId()));
+        }).toList();
+    }
+
+
+//    public List<BrandWeb> getBrandBaseCategory(Integer categoryId) {
+//        return brandRepository.findAll().stream().map(e -> {
+//            return new BrandWeb(e.getId(), e.getName(), e.getThumbail(),(long) productRepository.countBrandFormCategory(categoryId,e.getId()));
+//        }).toList();
+//    }
+
+    public List<BrandWeb> getBrand() {
+        return brandRepository.findAll().stream().map(e -> {
+            return new BrandWeb(e.getId(), e.getName(), e.getThumbail(), productRepository.countByBrand_Id(e.getId()));
+        }).toList();
+    }
+
+
+    // Cac Service về Products
+//    public ResponseEntity<?> getProductsBestSeller(Integer page, Integer pageSize) {
+//        return ResponseEntity.ok(productRepository.getProductOrderByNumsSoldOut(PageRequest.of(page, pageSize)));
+//    }
+//
+//    public ResponseEntity<?> getProductsTopView(Integer page, Integer pageSize) {
+//        return ResponseEntity.ok(productRepository.getProductOrderTopView(PageRequest.of(page, pageSize)));
+//    }
+//
+//    public ResponseEntity<?> getProductSales(Integer page, Integer pageSize) {
+//        return ResponseEntity.ok(productRepository.findBySalesGreaterThan(1.0,PageRequest.of(page, pageSize,Sort.by("discountId").descending())));
+//    }
+//
+//    public ResponseEntity<?> getProductNew(Integer page, Integer pageSize) {
+//        return ResponseEntity.ok(productRepository.getProductNew(PageRequest.of(page, pageSize)));
+//    }
+//
+//
+//
+//    // lọc Sp theo Yêu cầu
+//
+//
+//
+//    public Page<ProductInfo> getProductFilter(Integer brandId, Integer categoryId, Long price, Integer page, Integer pageSize) {
+//        if(brandId == 8 || brandId == 100){
+//            return productRepository.getProductFilterAboutCategory(categoryId,price,PageRequest.of(page,pageSize));
+//        }
+//        return productRepository.getProductFilter(brandId,categoryId,price,PageRequest.of(page,pageSize));
+//    }
+//
+//    public Page<ProductInfo> getProductFilterAboutCategory(Integer categoryId, Long price, Integer page, Integer pageSize) {
+//        return productRepository.getProductFilterAboutCategory(categoryId,price,PageRequest.of(page,pageSize));
+//    }
+//
+//    public List<ProductInfo> getTopProductSeller(){
+//        List<ProductInfo> productInfos = productRepository.getProductTop4BestSeller();
+//        return productInfos;
+//    }
+//
+//    public List<ProductInfo> getTopProductView(){
+//        List<ProductInfo> productInfos = productRepository.getProductTop4BestView();
+//        return productInfos;
+//    }
+    // Lấy ra danh sách Brand có số lượng Cateogry
+    public List<BrandWeb> getBrandbyCategory(Integer categoryId){
+        List<Brand> brands = brandRepository.findAll();
+        return brands.stream().map(e->{
+            return new BrandWeb(e.getId(),e.getName(), e.getThumbail(), productRepository.findBrandByCategory(categoryId,e.getId()));
+        }).toList();
+    }
+//
+// // Lấy thông tin Product
+//    public Product getProductById(Integer productId) {
+//      Optional<ProductInfo> product = productRepository.FindProductById(productId);
+//      if(product.isEmpty()){
+//          throw new NotFoundException("Không tìm thấy Product với Id" + productId);
+//      }
+//        Product productOriginal = productRepository.findById(productId).orElse(null);
+//        productOriginal.setView(productOriginal.getView() + 1);
+//      productRepository.save(productOriginal);
+//      return productOriginal;
+//    }
+//    // Lấy danh sách Cmt của Product
+//    public List<CommentProductInfo> getCommentForProduct(Integer productId){
+//        return commentProductRepository.findByProduct_Id(productId);
+//    }
+//
+//
+//    public List<ProductInfo> getProductSimilar(Integer productId,Integer brandId){
+//        Random rd = new Random();
+//         return productRepository.findByBrand_IdAndIdNotIn(brandId,List.of(productId)).subList(0,4);
+//    }
+//
+//    public List<ProductInfo> getProductSimilarForBlog(Integer brandId) {
+//        return productRepository.findByBrand_Id(brandId).subList(0,4);
+//    }
+//
+//    // viết gửi comment cho product
+//    public ResponseEntity<?> sendCommentProduct(Integer productId, CommentProductResquest resquest){
+//        Product product = productRepository.findById(productId).orElse(null);
+//        User user = userRepository.findByEmail(resquest.getEmail()).orElse(null);
+//        CommentProduct cmt = CommentProduct.builder()
+//                .product(product)
+//                .user(user)
+//                .content(resquest.getContentComment())
+//                .build();
+//        commentProductRepository.save(cmt);
+//        return ResponseEntity.ok("Cảm ơn bạn đã bình luận về Sản phẩm của chúng tôi !! ");
+//    }
+//
+//    public Page<ProductInfo> searchProduct(String title,PageRequest pageRequest) {
+//        return productRepository.findByContentLikeIgnoreCaseOrNameContainsIgnoreCaseOrBrand_NameLikeIgnoreCaseOrCategory_NameContainsIgnoreCase(title,title,title,title,pageRequest);
+//    }
+    
+}

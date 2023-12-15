@@ -1,14 +1,16 @@
 package com.total.webecommerce.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 @Entity
 @Table(name = "image_product")
 public class ImageProduct {
@@ -23,7 +25,6 @@ public class ImageProduct {
     private String type; // image/png, image/jpg, ...
     @Column(name = "created_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
-
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

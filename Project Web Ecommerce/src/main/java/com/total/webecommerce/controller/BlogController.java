@@ -37,8 +37,8 @@ public class BlogController {
 
     // lấy danh sách comment của Blog
     @GetMapping("commentBlog/{blogId}")
-    public List<CommentBlog> getCommentBlog(@PathVariable Integer blogId){
-        return service.getBlogWithComment(blogId);
+    public Page<CommentBlog> getCommentBlog(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "5") Integer pageSize,@PathVariable Integer blogId){
+        return service.getBlogWithComment(page,pageSize,blogId);
     }
     @PreAuthorize("hasAnyRole('ADMIN','AUTHOR','USER')")
     // Gửi comment cho Blog
@@ -46,6 +46,7 @@ public class BlogController {
     public ResponseEntity<?> sendCommentBlog(@PathVariable Integer blogId , @Valid @RequestBody CommentBlogResquest comment){
         return service.sendCommentOfBlog(blogId,comment);
     }
+
     // tìm 2 bài blog có nội dung tương tự
     @GetMapping("findBrand/{blogId}/{brandId}")
     public List<BlogDTO> findBrand(@PathVariable Integer blogId,@PathVariable Integer brandId){
@@ -57,7 +58,12 @@ public class BlogController {
     public Page<BlogInfo> getBlogsOfAdmin(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "6") Integer pageSize){
         return service.getBlogsOfAdmin(page,pageSize);
     }
-
+    // Delete Comment for Blog
+    @PreAuthorize("hasAnyRole('ADMIN','USER','AUTHOR')")
+    @DeleteMapping("deleteCommentOfBlog/{commentId}")
+    public void deleteCommentOfBlog(@PathVariable Integer commentId){
+         service.deleteCommentOfBlog(commentId);
+    }
     @GetMapping("getBlogsOfAuthor")
     public Page<BlogInfo> getBlogsOfAuthor(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "6") Integer pageSize){
         return service.getBlogsOfAuthor(page,pageSize);

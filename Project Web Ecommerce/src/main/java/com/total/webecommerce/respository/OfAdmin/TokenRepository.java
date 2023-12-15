@@ -1,0 +1,13 @@
+package com.total.webecommerce.respository.OfAdmin;
+
+import com.total.webecommerce.entity.Token;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface TokenRepository extends JpaRepository<Token, Integer> {
+      Optional<Token> findByTokenUser(String tokenUser);
+
+
+
+}

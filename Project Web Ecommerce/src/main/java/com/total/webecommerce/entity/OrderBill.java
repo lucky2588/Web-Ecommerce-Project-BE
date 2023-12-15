@@ -44,16 +44,17 @@ public class OrderBill {
             }
         }
     }
-    @PreRemove
-    public void PreRemove(){
-        for (OrderItem item : this.orderItems){
-            orderItems.remove(item);
-        }
-        this.setOrderItems(null);
-        setStatus(false);
-    }
-
-
+//    @PreRemove
+//    public void PreRemove(){
+//        this.setUser(null);
+//        for (OrderItem item : this.orderItems){
+//            orderItems.remove(item);
+//        }
+//        this.setOrderItems(null);
+//        setStatus(false);
+//    }
+//
+//
     @Modifying
     @PostUpdate
     public void PostUpdate(){
@@ -61,7 +62,6 @@ public class OrderBill {
         if(this.orderItems.isEmpty()){
             this.status = false;
         }
-        log.info("Size cuar List "+this.orderItems.size());
         if(!this.orderItems.isEmpty()){
 
             Double longTotal=0.0;

@@ -3,6 +3,8 @@ package com.total.webecommerce.service;
 import com.total.webecommerce.entity.*;
 import com.total.webecommerce.entity.support.NotificationStatus;
 import com.total.webecommerce.respository.OfAdmin.NotificationRepository;
+import com.total.webecommerce.respository.OfProduct.ImageProductRepository;
+import com.total.webecommerce.respository.OfProduct.ProductRepository;
 import com.total.webecommerce.respository.OrBlog.ImageBlogRepository;
 import com.total.webecommerce.exception.BadResquestException;
 import com.total.webecommerce.exception.NotFoundException;
@@ -25,6 +27,8 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class FileService {
+    private final ImageProductRepository imageProductRepository;
+    private final ProductRepository productRepository;
     private final iCurrentImpl iCurrentUser;
     @Autowired
     private ImageRepository imageRepository;
@@ -82,7 +86,7 @@ public class FileService {
                     .username(accOfAdmin.getName())
                     .title("Update Image for Blog ")
                     .avatar(accOfAdmin.getAvatar())
-                    .content(accOfAdmin.getName()+" Post Image for Blog with ID " +blog.get().getId())
+                    .content(accOfAdmin.getName() + " Post Image for Blog with ID " + blog.get().getId())
                     .notificationStatus(NotificationStatus.UPDATE)
                     .typeOf(1)
                     .build();
@@ -128,7 +132,6 @@ public class FileService {
         }
         return fileName.substring(lastIndex + 1);
     }
-
     public boolean checkFileExtension(String fileExtension) {
         List<String> fileExtensions = List.of("png", "jpg", "jpeg");
         return fileExtensions.contains(fileExtension);
@@ -149,6 +152,46 @@ public class FileService {
                 });
         imageRepository.delete(image);
     }
+    public FileResponse uploadImageProduct(MultipartFile file, Integer productId) {
+        Optional<Product> product = productRepository.findById(productId);
+        if (product.isEmpty()) {
+            throw new NotFoundException("Không tìm thầy Product này ");
+        }
+        validateFile(file);
+        try {
+            ImageProduct imageProduct = ImageProduct.builder()
+                    .type(file.getContentType())
+                    .data(file.getBytes())
+                    .product(product.get())
+                    .build();
+            imageProductRepository.save(imageProduct);
+            product.get().setThumbail("http://localhost:8888/api/v1/files/product/" + product.get().getId() + "/" + imageProduct.getId());
+            User accOfAdmin = iCurrentUser.getUser();
+            Notification notification = Notification.builder()
+                    .username(accOfAdmin.getName())
+                    .title("Update Image for Product ")
+                    .avatar(accOfAdmin.getAvatar())
+                    .content(accOfAdmin.getName() + " Post Image for Product with ID " + product.get().getId())
+                    .notificationStatus(NotificationStatus.UPDATE)
+                    .typeOf(1)
+                    .build();
+            notificationRepository.save(notification);
+            return new FileResponse("http://localhost:8888/api/v1/files/product/" +product.get().getId() + "/" +imageProduct.getId());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public ImageProduct readProductImage(Integer blogId, Integer imageBlogId) {
+//        if (productRepository.findById(blogId).isEmpty()) {
+//            throw new BadResquestException("Không tìm thấy hình ảnh Blog này ");
+//        }
+//        return imageProductRepository.(imageBlogId, blogId);
+        return null;
+    }
+
+
 
 
 }

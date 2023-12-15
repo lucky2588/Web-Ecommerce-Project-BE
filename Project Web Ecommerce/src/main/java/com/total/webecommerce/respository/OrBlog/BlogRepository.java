@@ -22,17 +22,16 @@ public interface BlogRepository extends JpaRepository<Blog, Integer> {
 
     @Query("select b from Blog b where b.user.id = ?1")
     Page<BlogInfo> findBlogsAuthor(Integer id, Pageable pageable);
-
-
     @Query("select b from Blog b where b.brand.id = ?1")
     List<Blog> findByBrand_Id(Integer id);
 
-
-
-
-
      @Query(value="select b from Blog b where b.id = ?1")
      Optional<BlogInfo> findBlogbyId(Integer id);
+
+    @Query("select b from Blog b order by b.id DESC")
+    List<BlogInfo> findBlogsNew();
+
+
 
 
      @Query(nativeQuery = true , value = "select * from Blog b where b.status_blog = 1 ORDER BY b.view_blog desc limit 4")

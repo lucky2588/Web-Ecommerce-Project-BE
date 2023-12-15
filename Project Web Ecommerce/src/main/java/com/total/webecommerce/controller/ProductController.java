@@ -3,7 +3,9 @@ package com.total.webecommerce.controller;
 import com.total.webecommerce.entity.Product;
 import com.total.webecommerce.entity.projection.Public.CommentProductInfo;
 import com.total.webecommerce.entity.projection.OfUser.ProductInfo;
+import com.total.webecommerce.resquest.OfBlog.CreateBlogResquest;
 import com.total.webecommerce.resquest.OfProduct.CommentProductResquest;
+import com.total.webecommerce.resquest.OfProduct.CreateProductResquest;
 import com.total.webecommerce.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,8 +75,13 @@ private ProductService service;
 
     // Lấy danh sách cmt cho product
     @GetMapping("getCommentProduct/{productId}")
-    public List<CommentProductInfo> getCommentProduct(@PathVariable Integer productId){
-        return service.getCommentForProduct(productId);
+    public Page<CommentProductInfo> getCommentProduct(@RequestParam(defaultValue = "0") Integer page , @RequestParam(defaultValue = "8") Integer pageSize,@PathVariable Integer productId){
+        return service.getCommentForProduct(page,pageSize,productId);
+    }
+    @PreAuthorize("hasAnyRole('ADMIN','AUTHOR','USER')")
+    @DeleteMapping("deleteCommentProduct/{commentId}")
+    public void removeCommentOfProduct(@PathVariable Integer commentId){
+        service.deleteComment(commentId);
     }
 
     // lấy danh sách sp tương tự cho Blog
@@ -103,5 +110,19 @@ private ProductService service;
     public Page<ProductInfo> searchProduct(@RequestParam String title,@RequestParam(defaultValue = "0") Integer page,@RequestParam(defaultValue = "8") Integer pageSize ){
         return service.searchProduct(title, PageRequest.of(page,pageSize));
     }
+    // for Admin
+    @PostMapping("createProduct")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public  Integer createProduct(@RequestBody CreateProductResquest resquest){
+        return service.createProduct(resquest);
+
+    }
+
+
+
+
+
+
+
 
 }

@@ -36,13 +36,10 @@ public class SecurityConfig {
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     @Autowired
     private CustomFilter customFilter;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -50,16 +47,15 @@ public class SecurityConfig {
         provider.setUserDetailsService(customUserDetailService);
         return provider;
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-
     }
-
     @Bean
+
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        String[] publicList = {"/api/v1/public/**","/register","/auth/**","api/v1/files/**","/api/v1/files/**"};
+        String[] publicList = {"/api/v1/public/**","api/v1/export/**","/register","/auth/**",
+                "api/v1/files/**","/api/v1/files/**"};
         String[] adminList = {"api/v1/admin/**","/api/v1/admin/**"};
 
 
@@ -68,6 +64,10 @@ public class SecurityConfig {
                 .cors().and()
                 .authorizeHttpRequests()
                 .requestMatchers(publicList).permitAll()
+                .requestMatchers("webjars/**").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/api/v1/user/**").hasAnyRole("ADMIN","USER")
                 .requestMatchers(adminList).hasRole("ADMIN")
                 .anyRequest().authenticated()

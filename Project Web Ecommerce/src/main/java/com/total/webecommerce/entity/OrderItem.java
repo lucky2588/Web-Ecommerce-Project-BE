@@ -1,5 +1,4 @@
 package com.total.webecommerce.entity;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +7,6 @@ import org.springframework.data.jpa.repository.Modifying;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -31,22 +29,26 @@ public class OrderItem {
     private Product product;
     @PrePersist
     public void PrePersist(){
+        if (product == null) {
+            return;
+        }
         this.price = (double) (this.product.getPrice() * nums);
         if(product.getDiscount() != null){
             this.price = (double ) (this.product.getSales() * nums);
         }
     }
-
-    @Modifying
-    @PreUpdate
-    public void PreUpdate(){
-        this.price =(double) (this.product.getPrice() * nums);
-        if(product.getDiscount() != null){
-            this.price = (double ) (this.product.getSales() * nums);
-        }
-    }
-    @PreRemove
-    public void PreRemove(){
-        this.setProduct(null);
-    }
+//    @PreUpdate
+//    public void PreUpdate(){
+//        if (product == null) {
+//            return;
+//        }
+//        this.price =(double) (this.product.getPrice() * nums);
+//        if(product.getDiscount() != null){
+//            this.price = (double ) (this.product.getSales() * nums);
+//        }
+//    }
+//    @PreRemove
+//    public void PreRemove(){
+//        this.setProduct(null);
+//    }
 }
